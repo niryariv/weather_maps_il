@@ -25,4 +25,4 @@ jobs:
       env:
         TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
-      run: python your_script_name.py
+      run: python get_maps.py
