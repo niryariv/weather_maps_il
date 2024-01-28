@@ -1,9 +1,9 @@
 name: Check for Website Update
 
 on:
-  workflow_dispatch: {}  # Allows manual triggering of the workflow.
+  workflow_dispatch:
   schedule:
-    - cron: '0 * * * *' # Scheduled to run at the start of every hour
+    - cron: '0 * * * *'  # Runs at the start of every hour
 
 jobs:
   check-update:
@@ -21,8 +21,20 @@ jobs:
         python -m pip install --upgrade pip
         pip install requests
 
+    - name: Download artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: last-modified-files
+        path: path/to  # Replace with the path where you want to store the files
+
     - name: Run script
       env:
         TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
       run: python get_maps.py
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: last-modified-files
+        path: path/to/last_modified_*.txt  # Replace with the actual path to your last_modified files
