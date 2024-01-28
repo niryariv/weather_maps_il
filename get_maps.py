@@ -1,38 +1,41 @@
 import requests
-import hashlib
 import os
 
 # Configuration
 IMAGE_URL = "https://ims.gov.il/sites/default/files/ims_data/map_images/c3RainForecast/c3RainForecast.png"
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')  # Get Telegram token from environment variable
 CHANNEL_ID = os.getenv('CHANNEL_ID')  # Get Channel ID from environment variable
-CHECKSUM_FILE = 'last_checksum.txt'
+HEADER_FILE = 'last_modified.txt'
 
-def download_image(url):
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.content
+def check_for_update(url, header_file):
+    response = requests.head(url)
+    last_modified = response.headers.get('Last-Modified')
 
-def get_checksum(data):
-    return hashlib.md5(data).hexdigest()
+    if not last_modified:
+        print("Last-Modified header not found.")
+        return True
+
+    if not os.path.exists(header_file) or open(header_file).read().strip() != last_modified:
+        with open(header_file, 'w') as file:
+            file.write(last_modified)
+        return True
+
+    return False
 
 def send_telegram_photo(bot_token, chat_id, photo_data):
     url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
-    files = {'photo': photo_data}
+    files = {'photo': ('image.png', photo_data)}
     data = {'chat_id': chat_id}
     response = requests.post(url, files=files, data=data)
     response.raise_for_status()
 
 def main():
     print("Script started. Checking for new content.")
-    image_data = download_image(IMAGE_URL)
-    new_checksum = get_checksum(image_data)
-
-    if not os.path.exists(CHECKSUM_FILE) or open(CHECKSUM_FILE).read() != new_checksum:
-        print("New content detected! Sending image to Telegram.")
+    if check_for_update(IMAGE_URL, HEADER_FILE):
+        print("New content detected! Downloading image.")
+        image_data = requests.get(IMAGE_URL).content
+        print("Sending image to Telegram.")
         send_telegram_photo(TELEGRAM_TOKEN, CHANNEL_ID, image_data)
-        with open(CHECKSUM_FILE, 'w') as file:
-            file.write(new_checksum)
         print("Image sent successfully.")
     else:
         print("No new content found.")
