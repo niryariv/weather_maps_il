@@ -24,13 +24,18 @@ def send_telegram_photo(bot_token, chat_id, photo_data):
     response.raise_for_status()
 
 def main():
+    print("Script started. Checking for new content.")
     image_data = download_image(IMAGE_URL)
     new_checksum = get_checksum(image_data)
 
     if not os.path.exists(CHECKSUM_FILE) or open(CHECKSUM_FILE).read() != new_checksum:
+        print("New content detected! Sending image to Telegram.")
         send_telegram_photo(TELEGRAM_TOKEN, CHANNEL_ID, image_data)
         with open(CHECKSUM_FILE, 'w') as file:
             file.write(new_checksum)
+        print("Image sent successfully.")
+    else:
+        print("No new content found.")
 
 if __name__ == "__main__":
     main()
