@@ -1,7 +1,7 @@
 name: Check for Website Update
 
 on:
-  workflow_dispatch:  # Allows manual triggering of the workflow.
+  workflow_dispatch: {}  # Allows manual triggering of the workflow.
   schedule:
     - cron: '0 * * * *' # Scheduled to run at the start of every hour
 
@@ -25,4 +25,4 @@ jobs:
       env:
         TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
-      run: python get_maps.py
+      run: python your_script_name.py
