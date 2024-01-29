@@ -39,4 +39,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: last-modified-data
-        path: ./last_modified_data.json
+        path: .
