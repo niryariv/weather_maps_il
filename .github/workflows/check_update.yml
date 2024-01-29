@@ -29,7 +29,7 @@ jobs:
       with:
         name: last-modified-files
         path: data  # Download artifacts to 'data' directory
-        if-no-files-found: 'warn'
+        if-no-files-found: 'warn'  # Continue the workflow if no artifacts are found
 
     - name: Run script
       env:
