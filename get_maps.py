@@ -30,24 +30,27 @@ def send_telegram_photo(bot_token, chat_id, photo_data):
 def check_for_update(image_info):
     response = requests.head(image_info["url"])
     last_modified = response.headers.get('Last-Modified')
+    print(f'Current Last-Modified for {image_info["url"]}: {last_modified}')
 
     if not last_modified:
-        print(f"Last-Modified header not found for {image_info['url']}.")
+        print(f"Last-Modified header not found for {image_info['url']}. Assuming new content.")
         return True
 
     previous_last_modified = None
     if os.path.exists(image_info["header_file"]):
         with open(image_info["header_file"], 'r') as file:
             previous_last_modified = file.read().strip()
-        print(f'Previous Last-Modified for {image_info["url"]}: {previous_last_modified}')
+            print(f'Previous Last-Modified for {image_info["url"]}: {previous_last_modified}')
+    else:
+        print(f'No previous last-modified file found for {image_info["url"]}')
 
     if last_modified != previous_last_modified:
-        print(f'Current Last-Modified for {image_info["url"]}: {last_modified}')
         print('Writing last-modified to', image_info["header_file"])
         with open(image_info["header_file"], 'w') as file:
             file.write(last_modified)
         return True
 
+    print(f'No new content for {image_info["url"]}. Last-Modified matches the previous value.')
     return False
 
 def main():
