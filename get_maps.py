@@ -45,6 +45,9 @@ def check_for_update(image_info):
         print(f'No previous last-modified file found for {image_info["url"]}')
 
     if last_modified != previous_last_modified:
+        print('last-modified:', last_modified)
+        print('previous last-modified:', previous_last_modified)
+        
         print('Writing last-modified to', image_info["header_file"])
         with open(image_info["header_file"], 'w') as file:
             file.write(last_modified)
