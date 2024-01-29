@@ -7,7 +7,7 @@ IMAGE_URLS = [
     "https://ims.gov.il/sites/default/files/ims_data/map_images/c3RainForecast/c3RainForecast.png",
     "https://ims.gov.il/sites/default/files/ims_data/map_images/ecRainForecast/ecRainForecast.png"
 ]
-LAST_MODIFIED_FILE = "last_modified_data.json"
+LAST_MODIFIED_FILE = "./last_modified_data.json"
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHANNEL_ID = os.getenv('CHANNEL_ID')
 
@@ -24,12 +24,14 @@ def send_telegram_photo(bot_token, chat_id, photo_data):
     response.raise_for_status()
 
 def load_last_modified_data():
+    print("Looking for last modified data in:", LAST_MODIFIED_FILE)
     if os.path.exists(LAST_MODIFIED_FILE):
         with open(LAST_MODIFIED_FILE, 'r') as file:
             return json.load(file)
     return {}
 
 def save_last_modified_data(data):
+    print("Saving last modified data to:", LAST_MODIFIED_FILE)
     with open(LAST_MODIFIED_FILE, 'w') as file:
         json.dump(data, file)
 
