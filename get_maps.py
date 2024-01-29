@@ -39,8 +39,11 @@ def check_for_update(image_info):
     if os.path.exists(image_info['header_file']):
         with open(image_info['header_file'], 'r') as file:
             previous_last_modified = file.read().strip()
+        print(f'Previous Last-Modified for {image_info['url']}: {previous_last_modified}')
 
     if last_modified != previous_last_modified:
+        print(f'Current Last-Modified for {image_info['url']}: {last_modified}')
+        print('Writing last-modified to', image_info['header_file'])
         with open(image_info['header_file'], 'w') as file:
             file.write(last_modified)
         return True
