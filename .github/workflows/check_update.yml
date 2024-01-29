@@ -25,11 +25,16 @@ jobs:
       run: mkdir -p data
 
     - name: Download artifact
+      id: download-artifact
       uses: actions/download-artifact@v2
       with:
         name: last-modified-files
-        path: data  # Download artifacts to 'data' directory
-      continue-on-error: true  # Continue even if this step fails
+        path: data
+      continue-on-error: true
+
+    - name: Check if artifact was downloaded
+      if: steps.download-artifact.outcome == 'failure'
+      run: echo "No artifacts found. Proceeding with defaults."
 
     - name: Run script
       env:
@@ -38,7 +43,8 @@ jobs:
       run: python get_maps.py
 
     - name: Upload artifact
+      if: always()
       uses: actions/upload-artifact@v2
       with:
         name: last-modified-files
-        path: data/last_modified_*.txt  # Upload files from 'data' directory
+        path: data/last_modified_*.txt
