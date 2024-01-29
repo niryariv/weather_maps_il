@@ -21,11 +21,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install requests
 
+    - name: Create Data Directory
+      run: mkdir -p data
+
     - name: Download artifact
       uses: actions/download-artifact@v2
       with:
         name: last-modified-files
-        path: '.'  # Replace with the path where you want to store the files
+        path: data  # Download artifacts to 'data' directory
+        if-no-files-found: 'warn'
 
     - name: Run script
       env:
@@ -37,4 +41,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: last-modified-files
-        path: ./last_modified_*.txt  # Replace with the actual path to your last_modified files
+        path: data/last_modified_*.txt  # Upload files from 'data' directory
