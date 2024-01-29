@@ -21,15 +21,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install requests
 
-    - name: Create Data Directory
-      run: mkdir -p data
-
     - name: Download artifact
       id: download-artifact
       uses: actions/download-artifact@v2
       with:
         name: last-modified-files
-        path: data
+        path: .
       continue-on-error: true
 
     - name: Check if artifact was downloaded
@@ -47,4 +44,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: last-modified-files
-        path: data/last_modified_*.txt
+        path: ./last_modified_*.txt

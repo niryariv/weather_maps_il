@@ -4,12 +4,12 @@ import os
 # Configuration
 IMAGES_INFO = [
     {
-        "url": "https://ims.gov.il/sites/default/files/ims_data/map_images/c3RainForecast/c3RainForecast.png",
-        "header_file": "data/last_modified_c3.txt"
+        "url": "https://ims.gov.il/sites/default/files/ims_map_images/c3RainForecast/c3RainForecast.png",
+        "header_file": "last_modified_c3.txt"
     },
     {
-        "url": "https://ims.gov.il/sites/default/files/ims_data/map_images/ecRainForecast/ecRainForecast.png",
-        "header_file": "data/last_modified_ec.txt"
+        "url": "https://ims.gov.il/sites/default/files/ims_map_images/ecRainForecast/ecRainForecast.png",
+        "header_file": "last_modified_ec.txt"
     }
 ]
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
