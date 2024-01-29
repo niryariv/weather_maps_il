@@ -1,17 +1,13 @@
 import requests
 import os
+import json
 
 # Configuration
-IMAGES_INFO = [
-    {
-        "url": "https://ims.gov.il/sites/default/files/ims_data/map_images/c3RainForecast/c3RainForecast.png",
-        "header_file": "last_modified_c3.txt"
-    },
-    {
-        "url": "https://ims.gov.il/sites/default/files/ims_data/map_images/ecRainForecast/ecRainForecast.png",
-        "header_file": "last_modified_ec.txt"
-    }
+IMAGE_URLS = [
+    "https://ims.gov.il/sites/default/files/ims_data/map_images/c3RainForecast/c3RainForecast.png",
+    "https://ims.gov.il/sites/default/files/ims_data/map_images/ecRainForecast/ecRainForecast.png"
 ]
+LAST_MODIFIED_FILE = "last_modified_data.json"
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHANNEL_ID = os.getenv('CHANNEL_ID')
 
@@ -27,46 +23,33 @@ def send_telegram_photo(bot_token, chat_id, photo_data):
     response = requests.post(url, files=files, data=data)
     response.raise_for_status()
 
-def check_for_update(image_info):
-    response = requests.head(image_info["url"])
-    last_modified = response.headers.get('Last-Modified')
-    print(f'Current Last-Modified for {image_info["url"]}: {last_modified}')
+def load_last_modified_data():
+    if os.path.exists(LAST_MODIFIED_FILE):
+        with open(LAST_MODIFIED_FILE, 'r') as file:
+            return json.load(file)
+    return {}
 
-    if not last_modified:
-        print(f"Last-Modified header not found for {image_info['url']}. Assuming new content.")
-        return True
-
-    previous_last_modified = None
-    if os.path.exists(image_info["header_file"]):
-        with open(image_info["header_file"], 'r') as file:
-            previous_last_modified = file.read().strip()
-            print(f'Previous Last-Modified for {image_info["url"]}: {previous_last_modified}')
-    else:
-        print(f'No previous last-modified file found for {image_info["url"]}')
-
-    if last_modified != previous_last_modified:
-        print('last-modified:', last_modified)
-        print('previous last-modified:', previous_last_modified)
-        
-        print('Writing last-modified to', image_info["header_file"])
-        with open(image_info["header_file"], 'w') as file:
-            file.write(last_modified)
-        return True
-
-    print(f'No new content for {image_info["url"]}. Last-Modified matches the previous value.')
-    return False
+def save_last_modified_data(data):
+    with open(LAST_MODIFIED_FILE, 'w') as file:
+        json.dump(data, file)
 
 def main():
     print("Script started. Checking for new content.")
-    for image_info in IMAGES_INFO:
-        if check_for_update(image_info):
-            print(f"New content detected for {image_info['url']}! Downloading image.")
-            image_data = download_image(image_info["url"])
-            print(f"Sending image to Telegram from {image_info['url']}.")
+    last_modified_data = load_last_modified_data()
+
+    for url in IMAGE_URLS:
+        response = requests.head(url)
+        last_modified = response.headers.get('Last-Modified')
+        previous_last_modified = last_modified_data.get(url)
+
+        if not last_modified or last_modified != previous_last_modified:
+            print(f"New content detected for {url}! Downloading image.")
+            image_data = download_image(url)
             send_telegram_photo(TELEGRAM_TOKEN, CHANNEL_ID, image_data)
             print("Image sent successfully.")
-        else:
-            print(f"No new content found for {image_info['url']}.")
+            last_modified_data[url] = last_modified
+
+    save_last_modified_data(last_modified_data)
 
 if __name__ == "__main__":
     main()

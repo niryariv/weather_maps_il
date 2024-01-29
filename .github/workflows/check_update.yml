@@ -22,16 +22,11 @@ jobs:
         pip install requests
 
     - name: Download artifact
-      id: download-artifact
       uses: actions/download-artifact@v2
       with:
-        name: last-modified-files
+        name: last-modified-data
         path: .
       continue-on-error: true
-
-    - name: Check if artifact was downloaded
-      if: steps.download-artifact.outcome == 'failure'
-      run: echo "No artifacts found. Proceeding with defaults."
 
     - name: Run script
       env:
@@ -43,5 +38,5 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v2
       with:
-        name: last-modified-files
-        path: ./last_modified_*.txt
+        name: last-modified-data
+        path: ./last_modified_data.json
