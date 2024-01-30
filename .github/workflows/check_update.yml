@@ -25,7 +25,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: last-modified-data
-        path: .
+        path: ./last_modified_data.json
       continue-on-error: true
 
     - name: Run script
