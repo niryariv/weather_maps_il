@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 6 * * *'  # Runs at 6 AM UTC, which is 8 AM Israel Standard Time (UTC+2)
-    
+
 jobs:
   check-update:
     runs-on: ubuntu-latest
@@ -22,7 +22,7 @@ jobs:
         pip install requests
 
     - name: Download artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: last-modified-data
         path: ./last_modified_data.json
@@ -36,7 +36,7 @@ jobs:
 
     - name: Upload artifact
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: last-modified-data
         path: ./last_modified_data.json
