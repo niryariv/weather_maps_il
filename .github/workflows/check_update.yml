@@ -3,7 +3,7 @@ name: Check for Website Update
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 6 * * *'  # Runs at 6 AM UTC, which is 8 AM Israel Standard Time (UTC+2)
+    - cron: '0 8 * * *'  # Runs at 8 AM UTC, which is 10 AM Israel Standard Time (UTC+2)
 
 jobs:
   check-update:
