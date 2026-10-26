@@ -3,9 +3,8 @@ name: Check for Website Update
 on:
   workflow_dispatch:
   schedule:
-    # Run after the IMS model is ready, away from GitHub's busy start of the hour.
-    - cron: '17 10 * * *'
-      timezone: 'Asia/Jerusalem'
+    # Run daily at 07:10 UTC, away from GitHub's busy start of the hour.
+    - cron: '10 7 * * *'
 
 jobs:
   check-update:
