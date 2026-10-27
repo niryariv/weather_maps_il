@@ -3,12 +3,72 @@ name: Check for Website Update
 on:
   workflow_dispatch:
   schedule:
-    # Run daily at 07:10 UTC, away from GitHub's busy start of the hour.
-    - cron: '10 7 * * *'
+    # Frequent wakeups tolerate delayed cron events; the guard uses actual UTC time.
+    - cron: '7,27,47 * * * *'
+
+permissions:
+  contents: read
+  actions: read
+
+# Serialize the guard and delivery together so two wakeups cannot send twice.
+concurrency:
+  group: weather-maps-delivery
+  cancel-in-progress: false
 
 jobs:
-  check-update:
+  morning-guard:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      should_run: ${{ steps.guard.outputs.should_run }}
+      previous_run_id: ${{ steps.guard.outputs.previous_run_id }}
+    steps:
+    - name: Check actual time and last successful delivery
+      id: guard
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const now = new Date();
+          const today = now.toISOString().slice(0, 10);
+          const scheduled = context.eventName === 'schedule';
+          core.setOutput('should_run', 'false');
+          core.info(`Actual start: ${now.toISOString()}; target: 07:00 UTC`);
+          if (scheduled && now.getUTCHours() < 7) {
+            core.info('Before 07:00 UTC; waiting for a later wakeup.');
+            return;
+          }
+
+          // This artifact is written only after the weather script succeeds.
+          // Unlike successful guard-only runs, it records a real delivery check.
+          const pages = github.paginate.iterator(
+            github.rest.actions.listArtifactsForRepo,
+            { ...context.repo, name: 'last-modified-data', per_page: 100 }
+          );
+          for await (const { data: artifacts } of pages) {
+            for (const artifact of artifacts) {
+              if (artifact.expired ||
+                  artifact.workflow_run?.head_branch !== context.payload.repository.default_branch) continue;
+              const { data: run } = await github.rest.actions.getWorkflowRun({
+                ...context.repo, run_id: artifact.workflow_run.id
+              });
+              if (run.path !== '.github/workflows/check_update.yml' ||
+                  run.conclusion !== 'success') continue;
+              core.setOutput('previous_run_id', String(run.id));
+              if (scheduled && artifact.created_at.slice(0, 10) === today) {
+                core.info('Already completed today; skipping duplicate delivery.');
+                return;
+              }
+              core.setOutput('should_run', 'true');
+              return;
+            }
+          }
+          core.setOutput('should_run', 'true');
+
+  check-update:
+    needs: morning-guard
+    if: needs.morning-guard.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
     - uses: actions/checkout@v2
 
@@ -23,11 +83,13 @@ jobs:
         pip install requests
 
     - name: Download artifact
+      if: needs.morning-guard.outputs.previous_run_id != ''
       uses: actions/download-artifact@v4
       with:
         name: last-modified-data
-        path: ./last_modified_data.json
-      continue-on-error: true
+        path: .
+        run-id: ${{ needs.morning-guard.outputs.previous_run_id }}
+        github-token: ${{ github.token }}
 
     - name: Run script
       env:
@@ -36,8 +98,8 @@ jobs:
       run: python get_maps.py
 
     - name: Upload artifact
-      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: last-modified-data
         path: ./last_modified_data.json
+        if-no-files-found: error
